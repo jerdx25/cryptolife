@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>CryptoLife</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#1a1008;--parchment:#f5ede0;--cream:#fdf6ec;
+  --warm1:#e8c99a;--warm2:#c9975a;--warm3:#8b5e2a;
+  --accent:#c0392b;--accent2:#e67e22;--green:#27ae60;
+  --blue:#2980b9;--purple:#8e44ad;--gold:#d4a017;
+  --card:#fff9f0;--border:#d4b896;--shadow:rgba(26,16,8,.12);
+}
+html,body{height:100%;background:var(--parchment);font-family:'DM Sans',sans-serif;color:var(--ink);overflow-x:hidden}
+#app{min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:0 0 40px}
+.site-header{width:100%;background:var(--ink);padding:14px 20px;display:flex;align-items:center;justify-content:center}
+.site-header h1{font-family:'Playfair Display',serif;font-size:28px;font-weight:900;color:var(--warm1);letter-spacing:3px;text-transform:uppercase}
+.site-header .sub{font-size:10px;color:var(--warm3);letter-spacing:4px;text-align:center;margin-top:2px}
+.game-wrap{width:100%;max-width:520px;padding:0 12px;margin-top:16px;display:flex;flex-direction:column;gap:14px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px;box-shadow:0 2px 12px var(--shadow)}
+.card-title{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--warm3);margin-bottom:14px;font-weight:600}
+.setup-grid{display:flex;flex-direction:column;gap:12px}
+.field-label{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--warm3);display:block;margin-bottom:6px;font-weight:600}
+.text-input{width:100%;background:var(--cream);border:1.5px solid var(--border);color:var(--ink);padding:11px 14px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:border-color .2s}
+.text-input:focus{border-color:var(--warm2)}
+select.text-input{cursor:pointer}
+.gender-row,.skin-row{display:flex;gap:8px;flex-wrap:wrap}
+.opt-btn{flex:1;min-width:70px;background:var(--cream);border:1.5px solid var(--border);color:var(--warm3);padding:9px 6px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;text-align:center;letter-spacing:.5px}
+.opt-btn.sel{border-color:var(--warm2);background:var(--warm1);color:var(--ink)}
+.btn-start{width:100%;background:var(--ink);color:var(--warm1);border:none;padding:14px;border-radius:12px;font-family:'Playfair Display',serif;font-size:15px;font-weight:700;letter-spacing:2px;cursor:pointer;transition:all .2s;margin-top:4px}
+.btn-start:hover{background:#2d1f0a;transform:scale(.99)}
+.char-display{display:flex;align-items:center;gap:16px}
+.avatar-wrap{width:90px;height:90px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:var(--parchment);border-radius:50%;border:2px solid var(--border);overflow:hidden}
+.avatar-wrap svg{width:82px;height:82px}
+.char-text{flex:1}
+.char-name{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--ink)}
+.char-meta{font-size:11px;color:var(--warm3);margin-top:3px;font-weight:500}
+.char-money{font-size:14px;font-weight:600;color:var(--green);margin-top:4px}
+.char-career{font-size:11px;color:var(--purple);margin-top:2px;font-weight:600;letter-spacing:.5px}
+.loc-badge{font-size:11px;color:var(--blue);font-weight:600;margin-top:2px}
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat{display:flex;flex-direction:column;gap:4px}
+.stat-hdr{display:flex;justify-content:space-between}
+.stat-lbl{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--warm3);font-weight:600}
+.stat-val{font-size:11px;font-weight:700}
+.stat-track{height:5px;background:#ede0cc;border-radius:3px;overflow:hidden}
+.stat-fill{height:100%;border-radius:3px;transition:width .5s cubic-bezier(.4,0,.2,1)}
+.fill-h{background:linear-gradient(90deg,#f39c12,#e67e22)}
+.fill-hp{background:linear-gradient(90deg,#27ae60,#2ecc71)}
+.fill-s{background:linear-gradient(90deg,#2980b9,#3498db)}
+.fill-l{background:linear-gradient(90deg,#8e44ad,#9b59b6)}
+.log-scroll{max-height:220px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+.log-scroll::-webkit-scrollbar{width:3px}
+.log-scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.log-entry{background:var(--cream);border-radius:8px;padding:9px 12px;display:flex;gap:10px;align-items:flex-start;border-left:3px solid var(--border);animation:popIn .2s ease;font-size:13px;line-height:1.5;color:#4a3520}
+.log-entry.pos{border-left-color:var(--green)}.log-entry.neg{border-left-color:var(--accent)}
+.log-entry.neu{border-left-color:var(--blue)}.log-entry.cho{border-left-color:var(--gold);color:#7a5c30;font-style:italic}
+.log-entry.spe{border-left-color:var(--purple)}
+.log-age{font-size:10px;color:var(--warm3);white-space:nowrap;padding-top:2px;font-weight:700;letter-spacing:1px}
+@keyframes popIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+.choice-prompt{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--warm3);margin-bottom:10px;font-weight:600}
+.choice-list{display:flex;flex-direction:column;gap:7px}
+.choice-btn{background:var(--cream);border:1.5px solid var(--border);color:var(--ink);padding:12px 14px;border-radius:10px;cursor:pointer;text-align:left;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;transition:all .18s;display:flex;align-items:center;gap:12px;line-height:1.4;width:100%}
+.choice-btn:hover{border-color:var(--warm2);background:var(--warm1);transform:translateX(2px)}
+.choice-icon{font-size:20px;flex-shrink:0;width:26px;text-align:center}
+.choice-sub{font-size:10px;color:var(--warm3);margin-top:2px;letter-spacing:.5px;display:block;font-weight:500}
+.career-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.career-btn{background:var(--cream);border:1.5px solid var(--border);color:var(--ink);padding:12px 10px;border-radius:10px;cursor:pointer;text-align:left;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;transition:all .2s;display:flex;align-items:center;gap:8px;width:100%}
+.career-btn:hover{border-color:var(--warm2);background:var(--warm1)}
+.career-btn .ci{font-size:22px;flex-shrink:0}
+.career-btn .cn{display:flex;flex-direction:column}
+.career-btn .cs{font-size:10px;color:var(--warm3);font-weight:400;margin-top:1px}
+.btn-age{width:100%;background:var(--ink);color:var(--warm1);border:none;padding:13px;border-radius:12px;font-family:'Playfair Display',serif;font-size:14px;font-weight:700;letter-spacing:2px;cursor:pointer;transition:all .2s;text-transform:uppercase}
+.btn-age:hover{background:#2d1f0a}
+.btn-age:disabled{background:#c4b5a0;color:#a09080;cursor:not-allowed}
+.btn-new{width:100%;background:transparent;color:var(--warm3);border:1.5px solid var(--border);padding:11px;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:12px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:all .2s;font-weight:600}
+.btn-new:hover{border-color:var(--warm2);color:var(--warm2)}
+.tab-row{display:flex;gap:0;border:1.5px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:14px}
+.tab-btn{flex:1;padding:9px 4px;background:var(--cream);border:none;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;color:var(--warm3);cursor:pointer;letter-spacing:.5px;transition:all .2s;border-right:1px solid var(--border)}
+.tab-btn:last-child{border-right:none}
+.tab-btn.active{background:var(--ink);color:var(--warm1)}
+.overlay{display:none;position:fixed;inset:0;background:rgba(26,16,8,.88);z-index:200;align-items:center;justify-content:center;padding:20px}
+.overlay.show{display:flex}
+.death-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:28px 24px;max-width:400px;width:100%;text-align:center;display:flex;flex-direction:column;gap:14px}
+.death-em{font-size:52px}.death-name{font-family:'Playfair Display',serif;font-size:20px;font-weight:700}
+.death-sub{font-size:13px;color:var(--warm3);line-height:1.6}
+.death-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;text-align:left}
+.death-stat{background:var(--cream);border-radius:8px;padding:10px 12px}
+.death-stat-l{font-size:9px;letter-spacing:2px;color:var(--warm3);text-transform:uppercase;font-weight:600}
+.death-stat-v{font-size:15px;font-weight:700;color:var(--ink);margin-top:2px}
+.career-status{background:var(--cream);border-radius:10px;padding:12px 14px;border:1px solid var(--border);margin-bottom:10px}
+.cs-title{font-size:11px;letter-spacing:2px;color:var(--warm3);text-transform:uppercase;font-weight:600;margin-bottom:6px}
+.cs-body{font-size:13px;font-weight:600;color:var(--ink)}
+.cs-detail{font-size:12px;color:var(--warm3);margin-top:2px}
+.skill-row2{display:flex;align-items:center;gap:8px;margin-top:6px}
+.skill-lbl{font-size:10px;color:var(--warm3);width:60px;flex-shrink:0;letter-spacing:.5px}
+.skill-track{flex:1;height:5px;background:#ede0cc;border-radius:3px;overflow:hidden}
+.skill-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--warm2),var(--gold));transition:width .4s}
+.skill-num{font-size:10px;color:var(--warm3);width:24px;text-align:right}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<div id="app">
+<div class="site-header">
+  <div style="text-align:center">
+    <h1>CryptoLife</h1>
+    <div class="sub">live every chapter</div>
+  </div>
+</div>
+<div class="game-wrap">
+
+  <div class="card" id="setup-card">
+    <div class="card-title">Create Your Character</div>
+    <div class="setup-grid">
+      <div>
+        <span class="field-label">Name</span>
+        <input class="text-input" id="inp-name" placeholder="Enter name..." maxlength="20">
+      </div>
+      <div>
+        <span class="field-label">Gender</span>
+        <div class="gender-row">
+          <button class="opt-btn sel" id="g-female" onclick="setGender('female')">&#9792; Female</button>
+          <button class="opt-btn" id="g-male" onclick="setGender('male')">&#9794; Male</button>
+        </div>
+      </div>
+      <div>
+        <span class="field-label">Skin Tone</span>
+        <div class="skin-row">
+          <button class="opt-btn sel" id="sk-light" onclick="setSkin('light')">Light</button>
+          <button class="opt-btn" id="sk-tan" onclick="setSkin('tan')">Tan</button>
+          <button class="opt-btn" id="sk-medium" onclick="setSkin('medium')">Medium</button>
+          <button class="opt-btn" id="sk-dark" onclick="setSkin('dark')">Dark</button>
+        </div>
+      </div>
+      <div>
+        <span class="field-label">Country</span>
+        <select class="text-input" id="sel-country" onchange="populateStates()">
+          <option value="">-- Select Country --</option>
+        </select>
+      </div>
+      <div>
+        <span class="field-label">State / Province / Region</span>
+        <select class="text-input" id="sel-state">
+          <option value="">-- Select Country First --</option>
+        </select>
+      </div>
+      <button class="btn-start" onclick="startGame()">Begin Your Life</button>
+    </div>
+  </div>
+
+  <div class="card hidden" id="char-card">
+    <div class="char-display">
+      <div class="avatar-wrap" id="avatar-wrap"></div>
+      <div class="char-text">
+        <div class="char-name" id="char-name">-</div>
+        <div class="char-meta" id="char-meta">Newborn - Age 0</div>
+        <div class="loc-badge" id="char-loc"></div>
+        <div class="char-money" id="char-money">$0</div>
+        <div class="char-career" id="char-career"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card hidden" id="stats-card">
+    <div class="card-title">Stats</div>
+    <div class="stats-grid">
+      <div class="stat">
+        <div class="stat-hdr"><span class="stat-lbl">Happiness</span><span class="stat-val" id="v-h" style="color:#e67e22">-</span></div>
+        <div class="stat-track"><div class="stat-fill fill-h" id="b-h" style="width:0%"></div></div>
+      </div>
+      <div class="stat">
+        <div class="stat-hdr"><span class="stat-lbl">Health</span><span class="stat-val" id="v-hp" style="color:#27ae60">-</span></div>
+        <div class="stat-track"><div class="stat-fill fill-hp" id="b-hp" style="width:0%"></div></div>
+      </div>
+      <div class="stat">
+        <div class="stat-hdr"><span class="stat-lbl">Smarts</span><span class="stat-val" id="v-s" style="color:#2980b9">-</span></div>
+        <div class="stat-track"><div class="stat-fill fill-s" id="b-s" style="width:0%"></div></div>
+      </div>
+      <div class="stat">
+        <div class="stat-hdr"><span class="stat-lbl">Looks</span><span class="stat-val" id="v-l" style="color:#8e44ad">-</span></div>
+        <div class="stat-track"><div class="stat-fill fill-l" id="b-l" style="width:0%"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card hidden" id="main-panel">
+    <div class="tab-row">
+      <button class="tab-btn active" onclick="showTab('life')">Life</button>
+      <button class="tab-btn" onclick="showTab('careers')">Career</button>
+      <button class="tab-btn" onclick="showTab('crime')">Crime</button>
+    </div>
+    <div id="tab-life">
+      <div class="card-title">Life Events</div>
+      <div class="log-scroll" id="log"></div>
+    </div>
+    <div id="tab-careers" class="hidden">
+      <div class="card-title">Choose Your Path</div>
+      <div id="career-status-area"></div>
+      <div class="career-grid" id="career-grid"></div>
+    </div>
+    <div id="tab-crime" class="hidden">
+      <div class="card-title">Criminal Activities</div>
+      <div id="crime-status-area"></div>
+      <div class="career-grid" id="crime-grid"></div>
+    </div>
+  </div>
+
+  <div class="card hidden" id="choice-card">
+    <div class="choice-prompt">What do you do?</div>
+    <div class="choice-list" id="choice-list"></div>
+  </div>
+
+  <div class="hidden" id="action-area" style="flex-direction:column;gap:8px">
+    <button class="btn-age" id="btn-age" onclick="ageUp()">Age Up</button>
+    <button class="btn-new" onclick="resetGame()">New Character</button>
+  </div>
+</div>
+
+<div class="overlay" id="death-overlay">
+  <div class="death-card">
+    <div class="death-em" id="death-em">RIP</div>
+    <div class="death-name" id="death-name"></div>
+    <div class="death-sub" id="death-sub"></div>
+    <div class="death-grid" id="death-grid"></div>
+    <button class="btn-start" onclick="resetGame()">Live Again</button>
+  </div>
+</div>
+
+<script>
+// ============================================================
+//  WORLD DATA
+// ============================================================
+const WORLD = {
+  "United States":["Alabama","Alaska","Arizona","Arkansas","California","Colorado","Connecticut","Delaware","Florida","Georgia","Hawaii","Idaho","Illinois","Indiana","Iowa","Kansas","Kentucky","Louisiana","Maine","Maryland","Massachusetts","Michigan","Minnesota","Mississippi","Missouri","Montana","Nebraska","Nevada","New Hampshire","New Jersey","New Mexico","New York","North Carolina","North Dakota","Ohio","Oklahoma","Oregon","Pennsylvania","Rhode Island","South Carolina","South Dakota","Tennessee","Texas","Utah","Vermont","Virginia","Washington","West Virginia","Wisconsin","Wyoming"],
+  "United Kingdom":["England","Scotland","Wales","Northern Ireland","London","Manchester","Birmingham","Leeds","Liverpool","Bristol","Sheffield","Newcastle","Nottingham","Leicester","Southampton"],
+  "Canada":["Alberta","British Columbia","Manitoba","New Brunswick","Newfoundland","Northwest Territories","Nova Scotia","Nunavut","Ontario","Prince Edward Island","Quebec","Saskatchewan","Yukon"],
+  "Australia":["New South Wales","Victoria","Queensland","South Australia","Western Australia","Tasmania","Australian Capital Territory","Northern Territory"],
+  "Mexico":["Aguascalientes","Baja California","Chihuahua","Ciudad de Mexico","Coahuila","Colima","Durango","Guanajuato","Guerrero","Hidalgo","Jalisco","Estado de Mexico","Michoacan","Morelos","Nayarit","Nuevo Leon","Oaxaca","Puebla","Queretaro","Quintana Roo","San Luis Potosi","Sinaloa","Sonora","Tabasco","Tamaulipas","Tlaxcala","Veracruz","Yucatan","Zacatecas"],
+  "Brazil":["Acre","Alagoas","Amapa","Amazonas","Bahia","Ceara","Distrito Federal","Espirito Santo","Goias","Maranhao","Mato Grosso","Mato Grosso do Sul","Minas Gerais","Para","Paraiba","Parana","Pernambuco","Piaui","Rio de Janeiro","Rio Grande do Norte","Rio Grande do Sul","Rondonia","Roraima","Santa Catarina","Sao Paulo","Sergipe","Tocantins"],
+  "Nigeria":["Abia","Adamawa","Akwa Ibom","Anambra","Bauchi","Bayelsa","Benue","Borno","Cross River","Delta","Ebonyi","Edo","Ekiti","Enugu","FCT Abuja","Gombe","Imo","Jigawa","Kaduna","Kano","Katsina","Kebbi","Kogi","Kwara","Lagos","Nasarawa","Niger","Ogun","Ondo","Osun","Oyo","Plateau","Rivers","Sokoto","Taraba","Yobe","Zamfara"],
+  "India":["Andhra Pradesh","Arunachal Pradesh","Assam","Bihar","Chhattisgarh","Goa","Gujarat","Haryana","Himachal Pradesh","Jharkhand","Karnataka","Kerala","Madhya Pradesh","Maharashtra","Manipur","Meghalaya","Mizoram","Nagaland","Odisha","Punjab","Rajasthan","Sikkim","Tamil Nadu","Telangana","Tripura","Uttar Pradesh","Uttarakhand","West Bengal","Delhi","Mumbai","Bangalore","Chennai","Hyderabad"],
+  "China":["Anhui","Beijing","Chongqing","Fujian","Gansu","Guangdong","Guangxi","Guizhou","Hainan","Hebei","Heilongjiang","Henan","Hong Kong","Hubei","Hunan","Inner Mongolia","Jiangsu","Jiangxi","Jilin","Liaoning","Macau","Ningxia","Qinghai","Shaanxi","Shandong","Shanghai","Shanxi","Sichuan","Tianjin","Tibet","Xinjiang","Yunnan","Zhejiang"],
+  "Germany":["Baden-Wurttemberg","Bavaria","Berlin","Brandenburg","Bremen","Hamburg","Hesse","Lower Saxony","Mecklenburg-Vorpommern","North Rhine-Westphalia","Rhineland-Palatinate","Saarland","Saxony","Saxony-Anhalt","Schleswig-Holstein","Thuringia"],
+  "France":["Auvergne-Rhone-Alpes","Bretagne","Centre-Val de Loire","Corse","Grand Est","Hauts-de-France","Ile-de-France","Normandie","Nouvelle-Aquitaine","Occitanie","Pays de la Loire","Provence-Alpes-Cote d'Azur"],
+  "Japan":["Aichi","Aomori","Chiba","Fukuoka","Fukushima","Hiroshima","Hokkaido","Hyogo","Ibaraki","Ishikawa","Iwate","Kagawa","Kagoshima","Kanagawa","Kochi","Kumamoto","Kyoto","Mie","Miyagi","Miyazaki","Nagano","Nagasaki","Nara","Niigata","Oita","Okayama","Okinawa","Osaka","Saga","Saitama","Shiga","Shimane","Shizuoka","Tochigi","Tokushima","Tokyo","Tottori","Toyama","Wakayama","Yamagata","Yamaguchi","Yamanashi"],
+  "South Korea":["Busan","Daegu","Daejeon","Gangwon","Gwangju","Gyeonggi","Gyeongnam","Incheon","Jeju","Seoul","Ulsan"],
+  "South Africa":["Eastern Cape","Free State","Gauteng","KwaZulu-Natal","Limpopo","Mpumalanga","North West","Northern Cape","Western Cape"],
+  "Russia":["Chelyabinsk","Irkutsk","Kaliningrad","Kemerovo","Khabarovsk","Krasnoyarsk","Leningrad","Moscow","Murmansk","Nizhny Novgorod","Novosibirsk","Omsk","Orenburg","Perm","Primorsky","Rostov","Samara","Saratov","Sverdlovsk","Tomsk","Tyumen","Volgograd","Yaroslavl"],
+  "Argentina":["Buenos Aires","Catamarca","Chaco","Chubut","Cordoba","Corrientes","Entre Rios","Formosa","Jujuy","La Pampa","La Rioja","Mendoza","Misiones","Neuquen","Rio Negro","Salta","San Juan","San Luis","Santa Cruz","Santa Fe","Tucuman"],
+  "Colombia":["Antioquia","Atlantico","Bogota","Bolivar","Boyaca","Caldas","Caqueta","Cauca","Cesar","Choco","Cordoba","Cundinamarca","Huila","La Guajira","Magdalena","Meta","Narino","Norte de Santander","Putumayo","Quindio","Risaralda","Santander","Sucre","Tolima","Valle del Cauca"],
+  "Spain":["Andalucia","Aragon","Asturias","Baleares","Canarias","Cantabria","Castilla-La Mancha","Castilla y Leon","Cataluna","Comunidad de Madrid","Comunidad Valenciana","Extremadura","Galicia","La Rioja","Murcia","Navarra","Pais Vasco"],
+  "Italy":["Abruzzo","Apulia","Basilicata","Calabria","Campania","Emilia-Romagna","Friuli-Venezia Giulia","Lazio","Liguria","Lombardy","Marche","Molise","Piedmont","Sardinia","Sicily","Tuscany","Umbria","Veneto"],
+  "Jamaica":["Clarendon","Hanover","Kingston","Manchester","Portland","Saint Andrew","Saint Ann","Saint Catherine","Saint Elizabeth","Saint James","Saint Mary","Saint Thomas","Trelawny","Westmoreland"],
+  "Ghana":["Ashanti","Bono","Central","Eastern","Greater Accra","Northern","Oti","Upper East","Upper West","Volta","Western"],
+  "Kenya":["Baringo","Bungoma","Garissa","Homa Bay","Kajiado","Kakamega","Kiambu","Kilifi","Kirinyaga","Kisii","Kisumu","Kitui","Kwale","Laikipia","Lamu","Machakos","Meru","Mombasa","Murang'a","Nairobi","Nakuru","Nyamira","Nyandarua","Nyeri","Trans Nzoia","Uasin Gishu"],
+  "Philippines":["Batangas","Bulacan","Cavite","Cebu","Davao","Iloilo","Isabela","Laguna","Metro Manila","Misamis Oriental","Negros Occidental","Nueva Ecija","Pampanga","Pangasinan","Quezon","Rizal","Samar","Zamboanga"],
+  "UAE":["Abu Dhabi","Ajman","Dubai","Fujairah","Ras Al Khaimah","Sharjah","Umm Al Quwain"],
+  "Saudi Arabia":["Riyadh","Makkah","Madinah","Eastern Province","Asir","Tabuk","Hail","Jazan","Najran"],
+  "Turkey":["Adana","Ankara","Antalya","Bursa","Diyarbakir","Gaziantep","Istanbul","Izmir","Kayseri","Konya","Trabzon"],
+  "Poland":["Greater Poland","Holy Cross","Kuyavian-Pomeranian","Lesser Poland","Lodz","Lower Silesian","Lublin","Masovian","Pomeranian","Silesian","Warmian-Masurian"],
+  "Netherlands":["Drenthe","Flevoland","Friesland","Gelderland","Groningen","Limburg","North Brabant","North Holland","Overijssel","South Holland","Utrecht","Zeeland"],
+  "Sweden":["Blekinge","Dalarna","Gavleborg","Gotland","Halland","Jamtland","Jonkoping","Kalmar","Kronoberg","Norrbotten","Orebro","Ostergotland","Skane","Sodermanland","Stockholm","Uppsala","Varmland","Vasterbotten","Vasternorrland","Vastmanland","Vastra Gotaland"],
+  "Pakistan":["Azad Kashmir","Balochistan","Gilgit-Baltistan","Islamabad","Khyber Pakhtunkhwa","Punjab","Sindh"],
+  "Egypt":["Alexandria","Aswan","Assiut","Beheira","Beni Suef","Cairo","Dakahlia","Damietta","Faiyum","Gharbia","Giza","Ismailia","Kafr El Sheikh","Luxor","Matruh","Minya","Monufia","Port Said","Qalyubia","Qena","Red Sea","Sharqia","Sohag","Suez"],
+  "Ethiopia":["Addis Ababa","Afar","Amhara","Benishangul-Gumuz","Dire Dawa","Gambela","Harari","Oromia","Sidama","Somali","Tigray"]
+};
+
+function populateCountries() {
+  const sel = document.getElementById('sel-country');
+  Object.keys(WORLD).sort().forEach(c => {
+    const o = document.createElement('option');
+    o.value = c; o.textContent = c; sel.appendChild(o);
+  });
+}
+
+function populateStates() {
+  const country = document.getElementById('sel-country').value;
+  const sel = document.getElementById('sel-state');
+  sel.innerHTML = '';
+  if (!country) { sel.innerHTML = '<option value="">-- Select Country First --</option>'; return; }
+  const states = WORLD[country] || [];
+  sel.appendChild(Object.assign(document.createElement('option'), {value:'', textContent:'-- Select Region --'}));
+  states.forEach(s => sel.appendChild(Object.assign(document.createElement('option'), {value:s, textContent:s})));
+}
+
+populateCountries();
+
+// ============================================================
+//  SKIN PALETTES
+// ============================================================
+const SKIN = {
+  light:  {face:'#f5c9a0',shadow:'#e0a870',lip:'#c87070',lip2:'#a85050',eye:'#5a85b0',pupil:'#1e3a5a',hair:'#8b5e28',hair2:'#6b4418',brow:'#6b4418',wht:'#fff',stub:'rgba(100,70,30,0.22)'},
+  tan:    {face:'#d4956a',shadow:'#b87548',lip:'#b05858',lip2:'#904040',eye:'#4a7a9a',pupil:'#1a3550',hair:'#3a2010',hair2:'#2a1508',brow:'#3a2010',wht:'#fff',stub:'rgba(50,25,10,0.26)'},
+  medium: {face:'#b5703c',shadow:'#955230',lip:'#904040',lip2:'#702828',eye:'#3a6a88',pupil:'#122840',hair:'#1a0e06',hair2:'#0f0802',brow:'#1a0e06',wht:'#fff',stub:'rgba(20,10,5,0.28)'},
+  dark:   {face:'#5c3317',shadow:'#3d2010',lip:'#6a2828',lip2:'#4a1818',eye:'#2a5070',pupil:'#081820',hair:'#0f0800',hair2:'#080500',brow:'#0f0800',wht:'#fff',stub:'rgba(10,5,2,0.32)'},
+};
+
+// ============================================================
+//  SVG FACE FUNCTIONS
+//  Female: oval jaw, arched brows, lashes, soft lips
+//  Male:   wide square jaw, thick straight brows, no lashes, stubble with age
+// ============================================================
+
+function femaleEyes(s) {
+  return `<ellipse cx="29" cy="42" rx="6.2" ry="5" fill="${s.wht}"/>
+  <ellipse cx="53" cy="42" rx="6.2" ry="5" fill="${s.wht}"/>
+  <circle cx="29" cy="43" r="4" fill="${s.eye}"/>
+  <circle cx="53" cy="43" r="4" fill="${s.eye}"/>
+  <circle cx="29" cy="43" r="2.2" fill="${s.pupil}"/>
+  <circle cx="53" cy="43" r="2.2" fill="${s.pupil}"/>
+  <circle cx="30" cy="42" r="1" fill="${s.wht}" opacity=".85"/>
+  <circle cx="54" cy="42" r="1" fill="${s.wht}" opacity=".85"/>
+  <path d="M22 40 Q23 38 24 40" stroke="${s.pupil}" stroke-width="1" fill="none"/>
+  <path d="M34 40 Q35 38 36 40" stroke="${s.pupil}" stroke-width="1" fill="none"/>
+  <path d="M46 40 Q47 38 48 40" stroke="${s.pupil}" stroke-width="1" fill="none"/>
+  <path d="M58 40 Q59 38 60 40" stroke="${s.pupil}" stroke-width="1" fill="none"/>
+  <path d="M23 34 Q29 30 36 34" stroke="${s.brow}" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  <path d="M46 34 Q53 30 59 34" stroke="${s.brow}" stroke-width="1.5" fill="none" stroke-linecap="round"/>`;
+}
+
+function maleEyes(s) {
+  return `<ellipse cx="29" cy="42" rx="6.5" ry="4.2" fill="${s.wht}"/>
+  <ellipse cx="53" cy="42" rx="6.5" ry="4.2" fill="${s.wht}"/>
+  <circle cx="29" cy="43" r="4" fill="${s.eye}"/>
+  <circle cx="53" cy="43" r="4" fill="${s.eye}"/>
+  <circle cx="29" cy="43" r="2.2" fill="${s.pupil}"/>
+  <circle cx="53" cy="43" r="2.2" fill="${s.pupil}"/>
+  <circle cx="30" cy="42" r="1" fill="${s.wht}" opacity=".85"/>
+  <circle cx="54" cy="42" r="1" fill="${s.wht}" opacity=".85"/>
+  <rect x="21" y="34" width="16" height="2.2" rx="1" fill="${s.brow}" transform="rotate(-3,29,35)"/>
+  <rect x="45" y="34" width="16" height="2.2" rx="1" fill="${s.brow}" transform="rotate(3,53,35)"/>`;
+}
+
+function noseAndMouth(s, isMale) {
+  const nw = isMale ? 3 : 2.5;
+  return `<path d="M39 47 Q41 54 43 47" stroke="${s.shadow}" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+  <ellipse cx="37" cy="53" rx="${nw}" ry="1.5" fill="${s.shadow}" opacity=".35"/>
+  <ellipse cx="45" cy="53" rx="${nw}" ry="1.5" fill="${s.shadow}" opacity=".35"/>
+  ${isMale
+    ? `<path d="M34 61 Q41 66 48 61" stroke="${s.lip}" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+       <path d="M36 61 Q41 63 46 61" fill="${s.lip2}" opacity=".45"/>`
+    : `<path d="M33 59 Q41 65 49 59" stroke="${s.lip}" stroke-width="2" fill="none" stroke-linecap="round"/>
+       <path d="M35 59 Q41 62 47 59" fill="${s.lip2}" opacity=".6"/>`}
+  <ellipse cx="21" cy="50" rx="6" ry="4" fill="${s.lip}" opacity=".${isMale?'06':'16'}"/>
+  <ellipse cx="61" cy="50" rx="6" ry="4" fill="${s.lip}" opacity=".${isMale?'06':'16'}"/>
+  <ellipse cx="32" cy="33" rx="6" ry="4" fill="${s.wht}" opacity=".14"/>`;
+}
+
+function femaleFace(s) {
+  return `<rect x="32" y="64" width="18" height="14" rx="4" fill="${s.face}"/>
+  <ellipse cx="41" cy="44" rx="24" ry="27" fill="${s.face}"/>
+  <ellipse cx="41" cy="68" rx="14" ry="5" fill="${s.shadow}" opacity=".2"/>`;
+}
+
+function maleFace(s) {
+  return `<rect x="29" y="64" width="24" height="14" rx="4" fill="${s.face}"/>
+  <path d="M14 44 Q14 20 41 18 Q68 20 68 44 Q68 62 55 70 Q41 77 27 70 Q14 62 14 44Z" fill="${s.face}"/>
+  <ellipse cx="41" cy="71" rx="16" ry="5" fill="${s.shadow}" opacity=".22"/>`;
+}
+
+function stubble(s, heavy) {
+  return `<ellipse cx="41" cy="65" rx="15" ry="7" fill="${s.stub}"/>
+  ${heavy ? `<ellipse cx="27" cy="59" rx="6" ry="4" fill="${s.stub}"/>
+  <ellipse cx="55" cy="59" rx="6" ry="4" fill="${s.stub}"/>
+  <ellipse cx="41" cy="69" rx="13" ry="5" fill="${s.stub}"/>` : ''}`;
+}
+
+function beard(s) {
+  const g = '#b0aea5';
+  return `<ellipse cx="41" cy="67" rx="17" ry="9" fill="${g}" opacity=".7"/>
+  <ellipse cx="27" cy="61" rx="7" ry="5" fill="${g}" opacity=".65"/>
+  <ellipse cx="55" cy="61" rx="7" ry="5" fill="${g}" opacity=".65"/>`;
+}
+
+// ---- BABE ----
+function faceBabe(s) {
+  return `<svg viewBox="0 0 82 82" xmlns="http://www.w3.org/2000/svg">
+  <ellipse cx="41" cy="44" rx="27" ry="29" fill="${s.face}"/>
+  <ellipse cx="23" cy="51" rx="7" ry="5" fill="${s.lip}" opacity=".2"/>
+  <ellipse cx="59" cy="51" rx="7" ry="5" fill="${s.lip}" opacity=".2"/>
+  <ellipse cx="29" cy="44" rx="5" ry="4" fill="${s.wht}"/>
+  <ellipse cx="53" cy="44" rx="5" ry="4" fill="${s.wht}"/>
+  <circle cx="29" cy="44" r="3" fill="${s.eye}"/>
+  <circle cx="53" cy="44" r="3" fill="${s.eye}"/>
+  <circle cx="29" cy="44" r="1.5" fill="${s.pupil}"/>
+  <circle cx="53" cy="44" r="1.5" fill="${s.pupil}"/>
+  <circle cx="30" cy="43" r=".8" fill="${s.wht}"/>
+  <circle cx="54" cy="43" r=".8" fill="${s.wht}"/>
+  <path d="M23 35 Q29 33 35 35" stroke="${s.brow}" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+  <path d="M47 35 Q53 33 59 35" stroke="${s.brow}" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+  <path d="M37 52 Q41 56 45 52" stroke="${s.lip}" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <circle cx="41" cy="60" r="5" fill="#e8c0c0" stroke="#d08080" stroke-width="1.2"/>
+  <rect x="38" y="63" width="6" height="3" rx="1.5" fill="#d08080"/>
+  <ellipse cx="41" cy="33" rx="9" ry="4" fill="${s.wht}" opacity=".15"/>
+</svg>`;
+}
+
+// ---- FEMALE TODDLER (bow) ----
+function faceFemaleToddler(s) {
+  return `<svg viewBox="0 0 82 82" xmlns="http://www.w3.org/2000/svg">
+  <path d="M17 40 Q18 14 41 13 Q64 14 65 40 Q60 20 41 20 Q22 20 17 40Z" fill="${s.hair}"/>
+  <path d="M17 40 Q16 50 18 56" stroke="${s.hair}" stroke-width="7" stroke-linecap="round" fill="none"/>
+  <path d="M65 40 Q66 50 64 56" stroke="${s.hair}" stroke-width="7" stroke-linecap="round" fill="none"/>
+  <path d="M26 16 Q21 9 17 13 Q21 18 26 16Z" fill="#d94f8a"/>
+  <path d="M26 16 Q31 9 35 13 Q31 18 26 16Z" fill="#c03878"/>
+  <circle cx="26" cy="16" r="3" fill="#e86aa0"/>
+  ${femaleFace(s)}${femaleEyes(s)}${noseAndMouth(s,false)}
+</svg>`;
+}
+
+// ---- MALE TODDLER (fluffy round hair) ----
+function faceMaleToddler(s) {
+  return `<svg viewBox="0 0 82 82" xmlns="http://www.w3.org/2000/svg">
+  <ellipse cx="41" cy="22" rx="24" ry="14" fill="${s.hair}"/>
+  <path d="M17 40 Q17 14 41 13 Q65 14 65 40 Q62 22 41 21 Q20 22 17 40Z" fill="${s.hair}"/>
+  ${maleFace(s)}${maleEyes(s)}${noseAndMouth(s,true)}
+</svg>`;
+}
+
+// ---- FEMALE CHILD (braids + headband) ----
+function faceFemaleChild(s) {
+  return `<svg viewBox="0 0 82 82" xmlns="http://www.w3.org/2000/svg">
+  <path d="M17 46 Q17 14 41 12 Q65 14 65 46 Q60 22 41 20 Q22 22 17 46Z" fill="${s.hair}"/>
+  <path d="M17 46 Q13 58 15 72" stroke="${s.hair}" stroke-width="8" stroke-linecap="round" fill="none"/>
+  <path d="M65 46 Q69 58 67 72" stroke="${s.hair}" stroke-width="8" stroke-linecap="round" fill="none"/>
+  <line x1="12" y1="60" x2="21" y2="58" stroke="${s.hair2}" stroke-width="1.5"/>
+  <line x1="12" y1="64" x2="21" y2="62" stroke="${s.hair2}" stroke-width="1.5"/>
+  <line x1="70" y1="60" x2="61" y2="58" stroke="${s.hair2}" stroke-width="1.5"/>
+  <line x1="70" y1="64" x2="61" y2="62" stroke="${s.hair2}" stroke-width="1.5"/>
+  <path d="M17 30 Q41 24 65 30" stroke="#e8609a" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+  ${femaleFace(s)}${femaleEyes(s)}${noseAndMouth(s,false)}
+</svg>`;
+}
+
+// ---- MALE CHILD (short side-part) ----
+function faceMaleChild(s) {
+  return `<svg viewBox="0 0 82 82" xmlns="http://www.w3.org/2000/svg">
+  <path d="M15 44 Q15 14 41 12 Q67 14 67 44 Q63 20 41 18 Q19 20 15 44Z" fill="${s.hair}"/>
+  <path d="M15 44 Q14 52 16 58" stroke="${s.hair}" stroke-width="7" stroke-linecap="round" fill="none"/>
+  <path d="M67 44 Q68 52 66 58" stroke="${s.hair}" stroke-width="7" stroke-linecap="round" fill="none"/>
+  <path d="M22 18 Q30 13 38 16" stroke="${s.hair2}" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  ${maleFace(s)}${maleEyes(s)}${noseAndMouth(s,true)}
+</svg>`;
+}
+
+// ---- FEMALE TEEN (headband) ----
+function faceFemaleteen(s) {
+  return `<svg viewBox="0 0 82 82" xmlns="http://www.w3.org/2000/svg">
+  <path d="M16 48 Q16 12 41 10 Q66 12 66 48 Q61 22 41 20 Q21 22 16 48Z" fill="${s.hair}"/>
+  <path d="M16 48 Q13 62 15 78" stroke="${s.hair}" stroke-width="9" stroke-linecap="round" fill="none"/>
+  <path d="M66 48 Q69 62 67 78" stroke="${s.hair}" stroke-width="9" stroke-linecap="round" fill="none"/>
+  <path d="M16 26 Q41 20 66 26" stroke="#c8607a" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+  ${femaleFace(s)}${femaleEyes(s)}${noseAndMouth(s,false)}
+  <circle cx="23" cy="51" r="1.8" fill="#c05555" opacity=".65"/>
+  <circle cx="59" cy="48" r="1.5" fill="#c05555" opacity=".55"/>
+</svg>`;
+}
+
+// ---- MALE TEEN (spiky messy, hint of fuzz) ----
+function faceMaleTeen(s) {
+  return `<svg viewBox="0 0 82 82" xmlns="http://www.w3.org/2000/svg">
+  <path d="M15 42 Q15 12 41 10 Q67 12 67 42 Q64 18 50 17 Q41 15 32 17 Q18 18 15 42Z" fill="${s.hair}"/>
+  <path d="M25 14 Q28 8 31 14" fill="${s.hair}"/>
+  <path d="M36 11 Q39 5 42 11" fill="${s.hair}"/>
+  <path d="M48 12 Q51 6 54 12" fill="${s.hair}"/>
+  <path d="M15 42 Q14 52 16 60" stroke="${s.hair}" stroke-width="6" stroke-linecap="round" fill="none"/>
+  <path d="M67 42 Q68 52 66 60" stroke="${s.hair}" stroke-width="6" stroke-linecap="round" fill="none"/>
+  ${maleFace(s)}${maleEyes(s)}${noseAndMouth(s,true)}
+  <path d="M36 58 Q41 60 46 58" stroke="${s.brow}" stroke-width=".9" fill="none" opacity=".45"/>
+</svg>`;
+}
+
+// ---- FEMALE YA ----
+function femaleFaceYA(s) {
+  return `<svg viewBox="0 0 82 82" xmlns="http://www.w3.org/2000/svg">
+  <path d="M16 48 Q16 10 41 8 Q66 10 66 48 Q61 22 41 20 Q21 22 16 48Z" fill="${s.hair}"/>
+  <path d="M16 48 Q12 64 14 80" stroke="${s.hair}" stroke-width="10" stroke-linecap="round" fill="none"/>
+  <path d="M66 48 Q70 64 68 80" stroke="${s.hair}" stroke-width="10" stroke-linecap="round" fill="none"/>
+  ${femaleFace(s)}${femaleEyes(s)}${noseAndMouth(s,false)}
+</svg>`;
+}
+
+// ---- MALE YA (fade cut, clean shave) ----
+function maleFaceYA(s) {
+  return `<svg viewBox="0 0 82 82" xmlns="http://www.w3.org/2000/svg">
+  <path d="M17 40 Q17 12 41 10 Q65 12 65 40 Q62 18 41 16 Q20 18 17 40Z" fill="${s.hair}"/>
+  <path d="M17 40 Q16 48 17 54" stroke="${s.hair}" stroke-width="5" stroke-linecap="round" fill="none" opacity=".5"/>
+  <path d="M65 40 Q66 48 65 54" stroke="${s.hair}" stroke-width="5" stroke-linecap="round" fill="none" opacity=".5"/>
+  ${maleFace(s)}${maleEyes(s)}${noseAndMouth(s,true)}
+  ${stubble(s,false)}
+</svg>`;
+}
+
+// ---- FEMALE ADULT ----
+function femaleFaceAdult(s) {
+  return `<svg viewBox="0 0 82 82" xmlns="http://www.w3.org/2000/svg">
+  <path d="M16 48 Q16 10 41 8 Q66 10 66 48 Q61 22 41 20 Q21 22 16 48Z" fill="${s.hair}"/>
+  <path d="M16 48 Q11 66 13 82" stroke="${s.hair}" stroke-width="11" stroke-linecap="round" fill="none"/>
+  <path d="M66 48 Q71 66 69 82" stroke="${s.hair}" stroke-width="11" stroke-linecap="round" fill="none"/>
+  ${femaleFace(s)}${femaleEyes(s)}${noseAndMouth(s,false)}
+  <path d="M17 54 Q20 58 18 62" stroke="${s.shadow}" stroke-width="1" fill="none" opacity=".3"/>
+  <path d="M65 54 Q62 58 64 62" stroke="${s.shadow}" stroke-width="1" fill="none" opacity=".3"/>
+</svg>`;
+}
+
+// ---- MALE ADULT (short trim, beard) ----
+function maleFaceAdult(s) {
+  return `<svg viewBox="0 0 82 82" xmlns="http://www.w3.org/2000/svg">
+  <path d="M16 42 Q16 12 41 10 Q66 12 66 42 Q62 18 41 16 Q20 18 16 42Z" fill="${s.hair}"/>
+  <path d="M16 42 Q15 50 16 56" stroke="${s.hair}" stroke-width="6" stroke-linecap="round" fill="none" opacity=".6"/>
+  <path d="M66 42 Q67 50 66 56" stroke="${s.hair}" stroke-width="6" stroke-linecap="round" fill="none" opacity=".6"/>
+  ${maleFace(s)}${maleEyes(s)}${noseAndMouth(s,true)}
+  ${stubble(s,true)}
+  <path d="M17 54 Q20 58 18 63" stroke="${s.shadow}" stroke-width="1.1" fill="none" opacity=".38"/>
+  <path d="M65 54 Q62 58 64 63" stroke="${s.shadow}" stroke-width="1.1" fill="none" opacity=".38"/>
+</svg>`;
+}
+
+// ---- FEMALE ELDER (gray) ----
+function femaleFaceElder(s) {
+  const g='#a8a8a0';
+  return `<svg viewBox="0 0 82 82" xmlns="http://www.w3.org/2000/svg">
+  <path d="M16 50 Q16 12 41 10 Q66 12 66 50 Q61 24 41 22 Q21 24 16 50Z" fill="${g}"/>
+  <path d="M16 50 Q11 66 13 82" stroke="${g}" stroke-width="11" stroke-linecap="round" fill="none"/>
+  <path d="M66 50 Q71 66 69 82" stroke="${g}" stroke-width="11" stroke-linecap="round" fill="none"/>
+  ${femaleFace(s)}${femaleEyes(s)}${noseAndMouth(s,false)}
+  <path d="M17 52 Q20 57 18 63" stroke="${s.shadow}" stroke-width="1.2" fill="none" opacity=".42"/>
+  <path d="M65 52 Q62 57 64 63" stroke="${s.shadow}" stroke-width="1.2" fill="none" opacity=".42"/>
+  <path d="M24 38 Q27 36 30 38" stroke="${s.shadow}" stroke-width=".8" fill="none" opacity=".28"/>
+  <path d="M52 38 Q55 36 58 38" stroke="${s.shadow}" stroke-width=".8" fill="none" opacity=".28"/>
+</svg>`;
+}
+
+// ---- MALE ELDER (gray, full beard) ----
+function maleFaceElder(s) {
+  const g='#b0aea5';
+  return `<svg viewBox="0 0 82 82" xmlns="http://www.w3.org/2000/svg">
+  <path d="M15 44 Q15 14 41 12 Q67 14 67 44 Q63 20 41 18 Q19 20 15 44Z" fill="${g}"/>
+  <path d="M15 44 Q14 52 15 58" stroke="${g}" stroke-width="5" stroke-linecap="round" fill="none" opacity=".7"/>
+  <path d="M67 44 Q68 52 67 58" stroke="${g}" stroke-width="5" stroke-linecap="round" fill="none" opacity=".7"/>
+  ${maleFace(s)}${maleEyes(s)}${noseAndMouth(s,true)}
+  ${beard(s)}
+  <path d="M16 52 Q19 57 17 63" stroke="${s.shadow}" stroke-width="1.3" fill="none" opacity=".45"/>
+  <path d="M66 52 Q63 57 65 63" stroke="${s.shadow}" stroke-width="1.3" fill="none" opacity=".45"/>
+  <path d="M23 37 Q27 35 31 37" stroke="${s.shadow}" stroke-width=".9" fill="none" opacity=".32"/>
+  <path d="M51 37 Q55 35 59 37" stroke="${s.shadow}" stroke-width=".9" fill="none" opacity=".32"/>
+</svg>`;
+}
+
+// ---- SPECIAL: Dreads (kingpin) ----
+function faceDreads(s) {
+  return `<svg viewBox="0 0 82 82" xmlns="http://www.w3.org/2000/svg">
+  <path d="M17 42 Q15 56 13 78" stroke="#120a02" stroke-width="6" stroke-linecap="round" fill="none"/>
+  <path d="M20 38 Q17 54 16 76" stroke="#120a02" stroke-width="5" stroke-linecap="round" fill="none"/>
+  <path d="M26 33 Q22 52 22 74" stroke="#120a02" stroke-width="5" stroke-linecap="round" fill="none"/>
+  <path d="M65 42 Q67 56 69 78" stroke="#120a02" stroke-width="6" stroke-linecap="round" fill="none"/>
+  <path d="M62 38 Q65 54 66 76" stroke="#120a02" stroke-width="5" stroke-linecap="round" fill="none"/>
+  <path d="M56 33 Q60 52 60 74" stroke="#120a02" stroke-width="5" stroke-linecap="round" fill="none"/>
+  <path d="M41 32 Q41 54 42 78" stroke="#120a02" stroke-width="5" stroke-linecap="round" fill="none"/>
+  <path d="M33 33 Q31 54 32 76" stroke="#120a02" stroke-width="5" stroke-linecap="round" fill="none"/>
+  <path d="M49 33 Q51 54 50 76" stroke="#120a02" stroke-width="5" stroke-linecap="round" fill="none"/>
+  <ellipse cx="41" cy="21" rx="23" ry="13" fill="#120a02"/>
+  ${maleFace(s)}${maleEyes(s)}${noseAndMouth(s,true)}
+  ${stubble(s,true)}
+  <circle cx="20" cy="58" r="2" fill="#2c4a8a" opacity=".7"/>
+  <path d="M20 56 Q20 52 20 48" stroke="#2c4a8a" stroke-width="1.5" fill="none" opacity=".6"/>
+  <circle cx="14" cy="54" r="4" fill="none" stroke="#d4a017" stroke-width="2.5"/>
+  <circle cx="68" cy="54" r="4" fill="none" stroke="#d4a017" stroke-width="2.5"/>
+</svg>`;
+}
+
+function getAvatar(G) {
+  const s = SKIN[G.skin] || SKIN.light;
+  const f = G.isFemale;
+  const a = G.age;
+  if ((G.career==='kingpin'||G.career==='cartel') && !f) return faceDreads(SKIN.dark);
+  if (a < 3)  return faceBabe(s);
+  if (a < 6)  return f ? faceFemaleToddler(s) : faceMaleToddler(s);
+  if (a < 13) return f ? faceFemaleChild(s)   : faceMaleChild(s);
+  if (a < 18) return f ? faceFemaleteen(s)    : faceMaleTeen(s);
+  if (a < 26) return f ? femaleFaceYA(s)      : maleFaceYA(s);
+  if (a < 51) return f ? femaleFaceAdult(s)   : maleFaceAdult(s);
+  return f ? femaleFaceElder(s) : maleFaceElder(s);
+}
+
+// ============================================================
+//  UTILITIES
+// ============================================================
+const rand  = (a,b) => Math.floor(Math.random()*(b-a+1))+a;
+const clamp = v => Math.max(0,Math.min(100,Math.round(v)));
+
+// ============================================================
+//  GAME DATA
+// ============================================================
+const EVENTS = [
+  {text:"You won first place in the school spelling bee!",type:'pos',min:6,max:14,choices:[
+    {icon:'A',t:'Study even harder',sub:'+15 Smarts',e:{s:15,hp:3}},
+    {icon:'B',t:'Celebrate with friends',sub:'+12 Happiness',e:{hp:12}},
+    {icon:'C',t:'Take it easy',sub:'+5 Happy',e:{hp:5,s:-3}},
+  ]},
+  {text:"A bully keeps stealing your lunch money.",type:'neg',min:6,max:15,choices:[
+    {icon:'A',t:'Stand up and fight',sub:'+Happy -Health',e:{hp:8,health:-8}},
+    {icon:'B',t:'Tell a teacher',sub:'+Smarts',e:{s:5,hp:3}},
+    {icon:'C',t:'Ignore it',sub:'-Happiness',e:{hp:-12}},
+  ]},
+  {text:"You found $20 on the street.",type:'pos',min:5,max:99,choices:[
+    {icon:'A',t:'Keep it',sub:'+$20 +Happy',e:{hp:8,money:20}},
+    {icon:'B',t:'Turn it in',sub:'+Smarts',e:{s:5,hp:5}},
+    {icon:'C',t:'Share with friends',sub:'+Happy',e:{hp:12}},
+  ]},
+  {text:"You discovered a talent for drawing.",type:'pos',min:7,max:18,choices:[
+    {icon:'A',t:'Take art classes',sub:'+Smarts +Looks',e:{s:10,l:8}},
+    {icon:'B',t:'Keep gaming',sub:'+Happy',e:{hp:8}},
+    {icon:'C',t:'Start an online art page',sub:'+Looks +Fame',e:{l:10,fame:5}},
+  ]},
+  {text:"Your first crush asked for your number.",type:'pos',min:13,max:19,choices:[
+    {icon:'A',t:'Give it!',sub:'+Happiness +Looks',e:{hp:18,l:5}},
+    {icon:'B',t:'Focus on school instead',sub:'+Smarts',e:{s:10}},
+    {icon:'C',t:'Freeze up and walk away',sub:'-Happy',e:{hp:-8}},
+  ]},
+  {text:"You were offered a role in a TV commercial.",type:'pos',min:15,max:30,choices:[
+    {icon:'A',t:'Take the role!',sub:'+Looks +Fame +$500',e:{l:12,fame:8,money:500}},
+    {icon:'B',t:'Too nervous, decline',sub:'+Happy',e:{hp:4}},
+    {icon:'C',t:'Negotiate for more money',sub:'+Smarts +$800',e:{s:5,money:800}},
+  ]},
+  {text:"A startup offered you equity to join.",type:'neu',min:20,max:40,choices:[
+    {icon:'A',t:'Take the leap',sub:'+Smarts +$1200',e:{s:10,money:1200}},
+    {icon:'B',t:'Safe corporate job',sub:'+$1500',e:{money:1500,hp:-5}},
+    {icon:'C',t:'Start your own company',sub:'+Smarts -$1k',e:{s:15,money:-1000}},
+  ]},
+  {text:"Your doctor found a health issue.",type:'neg',min:30,max:75,choices:[
+    {icon:'A',t:'Follow the treatment',sub:'+Health -$500',e:{health:15,money:-500}},
+    {icon:'B',t:'Diet and exercise',sub:'+Health +Looks',e:{health:10,l:5}},
+    {icon:'C',t:'Ignore the doctor',sub:'-15 Health',e:{health:-15}},
+  ]},
+  {text:"You inherited money from a distant relative.",type:'pos',min:25,max:70,choices:[
+    {icon:'A',t:'Buy property',sub:'+$5000',e:{money:5000,s:5}},
+    {icon:'B',t:'Spend it all partying',sub:'+Happy -$2k',e:{hp:20,money:-2000}},
+    {icon:'C',t:'Invest in crypto',sub:'+$5000',e:{money:5000}},
+  ]},
+  {text:"A movie director wants to cast you.",type:'pos',min:18,max:45,choices:[
+    {icon:'A',t:'Accept the role!',sub:'+Fame +Looks +$3k',e:{fame:15,l:10,money:3000}},
+    {icon:'B',t:'Stage fright - decline',sub:'+Happy',e:{hp:5}},
+    {icon:'C',t:'Negotiate better terms',sub:'+Smarts +$5k',e:{s:8,money:5000}},
+  ]},
+  {text:"You were offered early retirement.",type:'neu',min:45,max:65,choices:[
+    {icon:'A',t:'Retire now!',sub:'+Happy +Health',e:{hp:20,health:10}},
+    {icon:'B',t:'Keep working, love the job',sub:'+Smarts +$2k',e:{s:10,money:2000}},
+    {icon:'C',t:'Part-time and hobbies',sub:'+Happy +Looks',e:{hp:15,l:5}},
+  ]},
+  {text:"Your grandchildren visit for the summer.",type:'pos',min:55,max:99,choices:[
+    {icon:'A',t:'Plan fun adventures',sub:'+Happiness',e:{hp:20}},
+    {icon:'B',t:'Share life wisdom',sub:'+Happy +Smarts',e:{s:5,hp:15}},
+    {icon:'C',t:'Too tired, get some rest',sub:'+Health',e:{health:5}},
+  ]},
+  {text:"You got into a car accident.",type:'neg',min:18,max:80,choices:[
+    {icon:'A',t:'Hospital and full rehab',sub:'+Health -$2k',e:{health:15,money:-2000}},
+    {icon:'B',t:'Sue the other driver',sub:'+Smarts +$3k',e:{money:3000,s:5}},
+    {icon:'C',t:'Thank luck and move on',sub:'+Happy',e:{hp:8}},
+  ]},
+  {text:"You discovered a passion for fitness.",type:'pos',min:16,max:50,choices:[
+    {icon:'A',t:'Train every single day',sub:'+Health +Looks',e:{health:15,l:10}},
+    {icon:'B',t:'Yoga and mindfulness',sub:'+Happy +Health',e:{hp:10,health:8}},
+    {icon:'C',t:'Nah, skip it',sub:'+Happy',e:{hp:5}},
+  ]},
+  {text:"A friend offered you a business partnership.",type:'neu',min:22,max:55,choices:[
+    {icon:'A',t:'Go all in together',sub:'+Smarts +$2k',e:{s:12,money:2000}},
+    {icon:'B',t:'Run it by a lawyer first',sub:'+Smarts -$200',e:{s:8,money:-200}},
+    {icon:'C',t:'Politely decline',sub:'+Happy',e:{hp:5}},
+  ]},
+];
+
+const CAREERS = [
+  {id:'nba',    icon:'Basketball',  name:'NBA Player',       sub:'Draft at 18+, need high health',minAge:16,req:{health:60},salary:50000,skillName:'Athletic'},
+  {id:'soccer', icon:'Soccer',      name:'Soccer Pro',        sub:'Sign to club at 14+',            minAge:14,req:{health:55},salary:40000,skillName:'Athletic'},
+  {id:'football',icon:'Football',   name:'NFL Player',        sub:'College then Draft path',         minAge:18,req:{health:65},salary:60000,skillName:'Athletic'},
+  {id:'rapper', icon:'Mic',         name:'Rapper / Artist',   sub:'Drop mixtapes, go viral',         minAge:16,req:{looks:40},salary:20000,skillName:'Music'},
+  {id:'actor',  icon:'Film',        name:'Hollywood Actor',   sub:'Audition your way up',            minAge:16,req:{looks:50},salary:25000,skillName:'Charisma'},
+  {id:'model',  icon:'Camera',      name:'Supermodel',        sub:'Needs very high Looks',           minAge:16,req:{looks:65},salary:30000,skillName:'Looks'},
+  {id:'doctor', icon:'Doctor',      name:'Doctor',            sub:'Med school - 8 years',            minAge:22,req:{s:70},salary:15000,skillName:'Medical'},
+  {id:'lawyer', icon:'Law',         name:'Lawyer',            sub:'Law school required',             minAge:24,req:{s:65},salary:12000,skillName:'Legal'},
+  {id:'ceo',    icon:'CEO',         name:'CEO',               sub:'Work your way to the top',        minAge:30,req:{s:60},salary:30000,skillName:'Business'},
+  {id:'influencer',icon:'Phone',    name:'Influencer',        sub:'Grow your following',             minAge:14,req:{looks:45},salary:10000,skillName:'Social'},
+];
+
+const CRIME_CAREERS = [
+  {id:'kingpin',  icon:'Diamond',  name:'Drug Kingpin',    sub:'Build your empire',          minAge:18,risk:.35,reward:80000, skillName:'Street'},
+  {id:'cartel',   icon:'Cartel',   name:'Cartel Boss',     sub:'International operation',    minAge:22,risk:.45,reward:150000,skillName:'Power'},
+  {id:'hacker',   icon:'Hacker',   name:'Master Hacker',   sub:'Digital crime network',      minAge:16,risk:.25,req:{s:55},reward:40000,skillName:'Tech'},
+  {id:'burglar',  icon:'Lock',     name:'Cat Burglar',     sub:'High-end heists',            minAge:18,risk:.3, reward:25000, skillName:'Stealth'},
+  {id:'con',      icon:'Cards',    name:'Con Artist',      sub:'Run elaborate scams',        minAge:18,risk:.28,req:{s:50},reward:35000,skillName:'Charm'},
+  {id:'assassin', icon:'Dagger',   name:'Hitman',          sub:'Work in the shadows',        minAge:20,risk:.55,reward:100000,skillName:'Precision'},
+];
+
+// ============================================================
+//  STATE
+// ============================================================
+let G = null;
+let selectedGender = 'female';
+let selectedSkin   = 'light';
+let waiting        = false;
+
+function setGender(g) {
+  selectedGender = g;
+  ['female','male'].forEach(x => document.getElementById('g-'+x).classList.toggle('sel', x===g));
+}
+function setSkin(sk) {
+  selectedSkin = sk;
+  ['light','tan','medium','dark'].forEach(x => document.getElementById('sk-'+x).classList.toggle('sel', x===sk));
+}
+
+// ============================================================
+//  START GAME
+// ============================================================
+function startGame() {
+  const country = document.getElementById('sel-country').value;
+  const state   = document.getElementById('sel-state').value;
+  if (!country) { alert('Please select your country!'); return; }
+  if (!state)   { alert('Please select your region!');  return; }
+  const name = document.getElementById('inp-name').value.trim() || (selectedGender==='female'?'Aria':'Marcus');
+  G = {
+    name, age:0, isFemale:selectedGender==='female', skin:selectedSkin,
+    country, state,
+    happiness:rand(55,80), health:rand(70,92), smarts:rand(35,68), looks:rand(35,68),
+    money:rand(0,500), fame:0,
+    career:null, careerName:'', careerSkill:0, careerSeason:0,
+    crimeCareer:null, crimeName:'', crimeSkill:0, heatLevel:0,
+    arrests:0, alive:true, lifespan:rand(72,96), seenEvents:[],
+  };
+  document.getElementById('setup-card').classList.add('hidden');
+  ['char-card','stats-card','main-panel'].forEach(id => document.getElementById(id).classList.remove('hidden'));
+  const aa = document.getElementById('action-area');
+  aa.classList.remove('hidden'); aa.style.display = 'flex';
+  renderAll();
+  addLog('Born in ' + G.state + ', ' + G.country + '. A new life begins!', 'pos');
+  buildCareerGrid(); buildCrimeGrid();
+}
+
+// ============================================================
+//  RENDER
+// ============================================================
+function renderAll() {
+  document.getElementById('avatar-wrap').innerHTML = getAvatar(G);
+  document.getElementById('char-name').textContent = G.name;
+  const stage = G.age<3?'Baby':G.age<6?'Toddler':G.age<13?'Child':G.age<18?'Teenager':G.age<26?'Young Adult':G.age<51?'Adult':'Elder';
+  document.getElementById('char-meta').textContent = stage + ' - Age ' + G.age;
+  document.getElementById('char-loc').textContent  = G.state + ', ' + G.country;
+  document.getElementById('char-money').textContent = '$' + G.money.toLocaleString();
+  const cc = document.getElementById('char-career');
+  cc.textContent = G.career ? (G.careerName + '  |  Skill: ' + G.careerSkill)
+    : G.crimeCareer ? (G.crimeName + '  |  Heat: ' + G.heatLevel + '%') : '';
+  const sm = {h:'happiness',hp:'health',s:'smarts',l:'looks'};
+  for (const [k,p] of Object.entries(sm)) {
+    const v = G[p]||0;
+    document.getElementById('v-'+k).textContent = v;
+    document.getElementById('b-'+k).style.width = v + '%';
+  }
+  updateCareerStatus(); updateCrimeStatus();
+}
+
+function addLog(text, type) {
+  type = type || 'neu';
+  const log = document.getElementById('log');
+  const d = document.createElement('div');
+  d.className = 'log-entry ' + type;
+  d.innerHTML = '<span class="log-age">yr ' + String(G.age).padStart(2,'0') + '</span><span>' + text + '</span>';
+  log.appendChild(d);
+  d.scrollIntoView({behavior:'smooth',block:'end'});
+}
+
+function showTab(tab) {
+  ['life','careers','crime'].forEach(t => document.getElementById('tab-'+t).classList.toggle('hidden', t!==tab));
+  document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', ['life','careers','crime'][i]===tab));
+}
+
+// ============================================================
+//  AGE UP
+// ============================================================
+function ageUp() {
+  if (waiting) return;
+  G.age++;
+  G.happiness = clamp(G.happiness + rand(-4,4));
+  G.health    = clamp(G.health    + (G.age>60 ? rand(-6,-1) : rand(-2,2)));
+  G.smarts    = clamp(G.smarts    + (G.health>50 ? rand(-1,2) : rand(-2,0)));
+  G.looks     = clamp(G.looks     + (G.age>35 ? rand(-3,0) : rand(-1,1)));
+
+  if (G.career) {
+    const c = CAREERS.find(function(x){return x.id===G.career;});
+    if (c) {
+      const earn = Math.floor(c.salary*(0.8+G.careerSkill/200));
+      G.money += earn; G.careerSkill = clamp(G.careerSkill+rand(1,4));
+      G.careerSeason++; G.fame = clamp(G.fame+rand(1,3));
+      addLog(c.name + ' season ' + G.careerSeason + ' done. Earned $' + earn.toLocaleString() + '. Skill: ' + G.careerSkill, 'spe');
+    }
+  }
+  if (G.crimeCareer) {
+    const c = CRIME_CAREERS.find(function(x){return x.id===G.crimeCareer;});
+    if (c) {
+      if (Math.random() < c.risk*(G.heatLevel/100+0.1)) {
+        G.arrests++;
+        G.heatLevel = clamp(G.heatLevel-20);
+        const bail = rand(5000,20000); G.money = Math.max(0,G.money-bail);
+        addLog('ARRESTED! $' + bail.toLocaleString() + ' bail. Arrests: ' + G.arrests, 'neg');
+        if (G.arrests>=3){ addLog('Sentenced to life in prison.','neg'); setTimeout(function(){triggerDeath('incarceration');},600); return; }
+      } else {
+        const earn = Math.floor(c.reward*rand(5,15)/10);
+        G.money+=earn; G.crimeSkill=clamp(G.crimeSkill+rand(1,3)); G.heatLevel=clamp(G.heatLevel+rand(3,8));
+        addLog(c.name + ' operations netted $' + earn.toLocaleString() + '. Heat: ' + G.heatLevel + '%', 'spe');
+      }
+    }
+  }
+
+  if (G.age>=G.lifespan||G.health<=0) { setTimeout(function(){triggerDeath(G.health<=0?'health failure':'old age');},500); return; }
+
+  renderAll(); showTab('life');
+
+  const eligible = EVENTS.filter(function(e){ return G.age>=(e.min||0)&&G.age<=(e.max||99)&&G.seenEvents.indexOf(e.text)<0; });
+  if (!eligible.length){ addLog('Another quiet year passes.','neu'); return; }
+  const ev = eligible[Math.floor(Math.random()*eligible.length)];
+  G.seenEvents.push(ev.text);
+  if (G.seenEvents.length>12) G.seenEvents.shift();
+  addLog(G.name + ' turns ' + G.age + '.', 'neu');
+  addLog(ev.text, ev.type);
+  showChoices(ev.choices);
+}
+
+// ============================================================
+//  CHOICES
+// ============================================================
+function showChoices(choices) {
+  waiting = true;
+  document.getElementById('btn-age').disabled = true;
+  const card = document.getElementById('choice-card');
+  const list = document.getElementById('choice-list');
+  card.classList.remove('hidden');
+  list.innerHTML = '';
+  choices.forEach(function(c) {
+    const btn = document.createElement('button');
+    btn.className = 'choice-btn';
+    btn.innerHTML = '<span class="choice-icon">' + c.icon + '</span><span>' + c.t + '<span class="choice-sub">' + (c.sub||'') + '</span></span>';
+    btn.onclick = function(){ applyChoice(c); };
+    list.appendChild(btn);
+  });
+  card.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function applyChoice(c) {
+  const e = c.e||{};
+  if (e.hp!==undefined)     G.happiness = clamp(G.happiness+e.hp);
+  if (e.health!==undefined) G.health    = clamp(G.health+e.health);
+  if (e.s!==undefined)      G.smarts    = clamp(G.smarts+e.s);
+  if (e.l!==undefined)      G.looks     = clamp(G.looks+e.l);
+  if (e.money!==undefined)  G.money     = Math.max(0,G.money+e.money);
+  if (e.fame!==undefined)   G.fame      = clamp(G.fame+e.fame);
+  const fx = Object.keys(e).map(function(k){ const v=e[k]; return (v>0?'+':'')+v+' '+k; }).join('  ');
+  addLog('You chose: ' + c.t + '  (' + fx + ')', 'cho');
+  document.getElementById('choice-card').classList.add('hidden');
+  waiting = false;
+  document.getElementById('btn-age').disabled = false;
+  renderAll();
+}
+
+// ============================================================
+//  CAREERS
+// ============================================================
+function buildCareerGrid() {
+  const grid = document.getElementById('career-grid');
+  grid.innerHTML = '';
+  CAREERS.forEach(function(c) {
+    const btn = document.createElement('button');
+    btn.className = 'career-btn';
+    btn.innerHTML = '<span class="ci">[' + c.icon + ']</span><span class="cn"><span>' + c.name + '</span><span class="cs">' + c.sub + '</span></span>';
+    btn.onclick = function(){ startCareer(c); };
+    grid.appendChild(btn);
+  });
+}
+
+function startCareer(c) {
+  if (G.age<c.minAge){ alert('Must be ' + c.minAge + '+ for this career.'); return; }
+  if (c.req) {
+    const keys = Object.keys(c.req);
+    for (let i=0;i<keys.length;i++) {
+      const k=keys[i], v=c.req[k];
+      const val = k==='s'?G.smarts:k==='health'?G.health:G.looks;
+      if (val<v){ alert('Need ' + (k==='s'?'Smarts':k==='health'?'Health':'Looks') + ' >= ' + v + '.'); return; }
+    }
+  }
+  G.career=c.id; G.careerName=c.name; G.careerSkill=10; G.careerSeason=0;
+  G.crimeCareer=null; G.crimeName='';
+  addLog('Signed on as: ' + c.name + '! First season begins.', 'spe');
+  renderAll(); showTab('careers');
+}
+
+function updateCareerStatus() {
+  const area = document.getElementById('career-status-area');
+  if (!G||!G.career){ area.innerHTML=''; return; }
+  const c = CAREERS.find(function(x){return x.id===G.career;});
+  if (!c) return;
+  area.innerHTML = '<div class="career-status"><div class="cs-title">Active Career</div><div class="cs-body">' + c.name + '</div><div class="cs-detail">Season ' + G.careerSeason + '  ~$' + c.salary.toLocaleString() + '/yr  Fame: ' + G.fame + '</div><div class="skill-row2"><div class="skill-lbl">' + c.skillName + '</div><div class="skill-track"><div class="skill-fill" style="width:' + G.careerSkill + '%"></div></div><div class="skill-num">' + G.careerSkill + '</div></div><button class="choice-btn" style="margin-top:10px;font-size:12px" onclick="retireCareer()">Retire / Quit</button></div>';
+}
+
+function retireCareer() {
+  addLog('Retired from ' + G.careerName + '.','neu');
+  G.career=null; G.careerName=''; G.careerSkill=0; renderAll();
+}
+
+// ============================================================
+//  CRIME
+// ============================================================
+function buildCrimeGrid() {
+  const grid = document.getElementById('crime-grid');
+  grid.innerHTML = '';
+  CRIME_CAREERS.forEach(function(c) {
+    const btn = document.createElement('button');
+    btn.className = 'career-btn';
+    btn.innerHTML = '<span class="ci">[' + c.icon + ']</span><span class="cn"><span>' + c.name + '</span><span class="cs">' + c.sub + '</span></span>';
+    btn.onclick = function(){ startCrime(c); };
+    grid.appendChild(btn);
+  });
+}
+
+function startCrime(c) {
+  if (G.age<c.minAge){ alert('Must be ' + c.minAge + '+ for this.'); return; }
+  if (c.req) {
+    const keys = Object.keys(c.req);
+    for (let i=0;i<keys.length;i++) {
+      const k=keys[i], v=c.req[k];
+      const val = k==='s'?G.smarts:G.looks;
+      if (val<v){ alert('Need ' + (k==='s'?'Smarts':'Looks') + ' >= ' + v + '.'); return; }
+    }
+  }
+  G.crimeCareer=c.id; G.crimeName=c.name; G.crimeSkill=5; G.heatLevel=10;
+  G.career=null; G.careerName='';
+  addLog('Entered the criminal underworld: ' + c.name + '. Watch your back.', 'neg');
+  renderAll(); showTab('crime');
+}
+
+function updateCrimeStatus() {
+  const area = document.getElementById('crime-status-area');
+  if (!G||!G.crimeCareer){ area.innerHTML=''; return; }
+  const c = CRIME_CAREERS.find(function(x){return x.id===G.crimeCareer;});
+  if (!c) return;
+  const hc = G.heatLevel>70?'var(--accent)':G.heatLevel>40?'var(--accent2)':'var(--green)';
+  area.innerHTML = '<div class="career-status"><div class="cs-title">Criminal Operation</div><div class="cs-body">' + c.name + '</div><div class="cs-detail">Arrests: ' + G.arrests + '  ~$' + c.reward.toLocaleString() + '/yr potential</div><div class="skill-row2"><div class="skill-lbl">' + c.skillName + '</div><div class="skill-track"><div class="skill-fill" style="width:' + G.crimeSkill + '%"></div></div><div class="skill-num">' + G.crimeSkill + '</div></div><div class="skill-row2"><div class="skill-lbl">Heat</div><div class="skill-track"><div class="skill-fill" style="width:' + G.heatLevel + '%;background:' + hc + '"></div></div><div class="skill-num" style="color:' + hc + '">' + G.heatLevel + '</div></div><button class="choice-btn" style="margin-top:10px;font-size:12px" onclick="quitCrime()">Go Straight</button></div>';
+}
+
+function quitCrime() {
+  addLog('Walked away from the criminal life.','neu');
+  G.crimeCareer=null; G.crimeName=''; renderAll();
+}
+
+// ============================================================
+//  DEATH
+// ============================================================
+function triggerDeath(cause) {
+  document.getElementById('death-name').textContent = G.name + ' - Age ' + G.age;
+  document.getElementById('death-sub').textContent  = 'Cause: ' + cause + '. A life from ' + G.state + ', ' + G.country + '.';
+  const stats=[['Age',G.age],['Happiness',G.happiness+'/100'],['Health',G.health+'/100'],
+    ['Smarts',G.smarts+'/100'],['Looks',G.looks+'/100'],['Net Worth','$'+G.money.toLocaleString()],
+    ['Fame',G.fame],['Arrests',G.arrests],['Career',G.careerName||G.crimeName||'None'],['Hometown',G.state]];
+  document.getElementById('death-grid').innerHTML = stats.map(function(x){
+    return '<div class="death-stat"><div class="death-stat-l">'+x[0]+'</div><div class="death-stat-v">'+x[1]+'</div></div>';
+  }).join('');
+  document.getElementById('death-em').textContent = G.age>80?'RIP':G.health<=0?'RIP':G.arrests>=3?'JAILED':'RIP';
+  document.getElementById('death-overlay').classList.add('show');
+  document.getElementById('btn-age').disabled = true;
+}
+
+// ============================================================
+//  RESET
+// ============================================================
+function resetGame() {
+  G=null; waiting=false; selectedGender='female'; selectedSkin='light';
+  document.getElementById('death-overlay').classList.remove('show');
+  document.getElementById('setup-card').classList.remove('hidden');
+  ['char-card','stats-card','main-panel','choice-card'].forEach(function(id){
+    document.getElementById(id).classList.add('hidden');
+  });
+  const aa = document.getElementById('action-area');
+  aa.style.display='none'; aa.classList.add('hidden');
+  document.getElementById('log').innerHTML='';
+  document.getElementById('inp-name').value='';
+  document.getElementById('sel-country').value='';
+  document.getElementById('sel-state').innerHTML='<option value="">-- Select Country First --</option>';
+  document.getElementById('btn-age').disabled=false;
+  setGender('female'); setSkin('light'); showTab('life');
+}
+</script>
+</body>
+</html>
